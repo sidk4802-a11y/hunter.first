@@ -1,4 +1,4 @@
-Import { useState, useEffect, useRef } from "react";
+const { useState, useEffect, useRef } = window;
 
 // ── Palette ──────────────────────────────────────────────
 const C = {
@@ -32,17 +32,6 @@ const SEED_POSTS = [
   { id: "p4", userId: "u3", type: "photo", content: "📸", caption: "Private moment — friends only ✨", likes: 20, time: "1d ago", comments: 2 },
 ];
 
-const SEED_MESSAGES = {
-  u1: [
-    { from: "u1", text: "Hey! How are you?", time: "10:32 AM" },
-    { from: "u2", text: "I'm good! Working on a new feature 💻", time: "10:34 AM" },
-    { from: "u1", text: "Sounds awesome, keep it up!", time: "10:35 AM" },
-  ],
-};
-
-const DEV_CREDS = { username: "DEVELOPER_99", password: "developer 997700" };
-const CAPTCHA_ANSWER = "X7K2M";
-
 // ── Helpers ───────────────────────────────────────────────
 const Avatar = ({ user, size = 40, style = {} }) => {
   const colors = ["#7C5CFC", "#FC5C8A", "#3DD68C", "#F5C842", "#5CE8FC"];
@@ -50,7 +39,6 @@ const Avatar = ({ user, size = 40, style = {} }) => {
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%",
-      background: user?.avatar ? "transparent" : colors[idx],
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.35, fontWeight: 700, color: "#fff",
       flexShrink: 0, overflow: "hidden",
@@ -88,39 +76,8 @@ const Input = ({ placeholder, value, onChange, type = "text", style = {} }) => (
       color: C.text, fontSize: 15, outline: "none", boxSizing: "border-box",
       transition: "border-color 0.2s", ...style
     }}
-    onFocus={e => e.target.style.borderColor = C.accent}
-    onBlur={e => e.target.style.borderColor = C.border}
   />
 );
-
-// ── Confetti Component ─────────────────────────────────────
-const Confetti = ({ active }) => {
-  const pieces = Array.from({ length: 60 }, (_, i) => ({
-    id: i,
-    color: [C.accent, C.pink, C.gold, C.green, "#5CE8FC"][i % 5],
-    x: Math.random() * 100,
-    delay: Math.random() * 0.8,
-    size: 6 + Math.random() * 8,
-    rotation: Math.random() * 360,
-  }));
-  if (!active) return null;
-  return (
-    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 999, overflow: "hidden" }}>
-      <style>{`
-        @keyframes fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
-      `}</style>
-      {pieces.map(p => (
-        <div key={p.id} style={{
-          position: "absolute", left: `${p.x}%`, top: 0,
-          width: p.size, height: p.size * 0.5,
-          background: p.color, borderRadius: 2,
-          transform: `rotate(${p.rotation}deg)`,
-          animation: `fall ${1.5 + Math.random()}s ${p.delay}s ease-in forwards`,
-        }} />
-      ))}
-    </div>
-  );
-};
 
 // ── Post Card ──────────────────────────────────────────────
 const PostCard = ({ post, user, liked, onLike }) => {
@@ -138,23 +95,17 @@ const PostCard = ({ post, user, liked, onLike }) => {
           <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>{user?.name}</div>
           <div style={{ color: C.muted, fontSize: 12 }}>@{user?.username} · {post.time}</div>
         </div>
-        {user?.locked && <span style={{ marginLeft: "auto", fontSize: 16 }}>🔒</span>}
       </div>
-      {/* Instagram-style 4:5 ratio image area */}
-      <div style={{ width: "100%", paddingTop: "125%", position: "relative", background: emojiBg[post.content] || C.placeholder }}>
+      <div style={{ width: "100%", paddingTop: "100%", position: "relative", background: emojiBg[post.content] || C.placeholder }}>
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80 }}>
           {post.content}
         </div>
       </div>
       <div style={{ padding: "14px 16px" }}>
         <div style={{ display: "flex", gap: 16, marginBottom: 10 }}>
-          <button onClick={onLike} style={{ background: "none", border: "none", cursor: "pointer", color: liked ? C.pink : C.muted, fontSize: 22, padding: 0, transition: "transform 0.15s" }}
-            onMouseDown={e => e.currentTarget.style.transform = "scale(1.3)"}
-            onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}>
+          <button onClick={onLike} style={{ background: "none", border: "none", cursor: "pointer", color: liked ? C.pink : C.muted, fontSize: 22 }}>
             {liked ? "❤️" : "🤍"}
           </button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 22, padding: 0 }}>💬</button>
-          <button style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 22, padding: 0 }}>📤</button>
         </div>
         <div style={{ color: C.text, fontSize: 13, fontWeight: 700 }}>{post.likes + (liked ? 1 : 0)} likes</div>
         <div style={{ color: C.text, fontSize: 14, marginTop: 4 }}>
@@ -166,26 +117,18 @@ const PostCard = ({ post, user, liked, onLike }) => {
 };
 
 // ── Bottom Nav ─────────────────────────────────────────────
-const BottomNav = ({ tab, setTab, isDev }) => {
-  const tabs = isDev
-    ? [{ id: "home", icon: "🌐", label: "Dev Home" }, { id: "users", icon: "👥", label: "Users" }, { id: "chat", icon: "💬", label: "Chats" }, { id: "database", icon: "🗄️", label: "Database" }]
-    : [{ id: "home", icon: "🏠", label: "Home" }, { id: "search", icon: "🔍", label: "Search" }, { id: "chat", icon: "💬", label: "Chat" }, { id: "profile", icon: "👤", label: "Profile" }];
+const BottomNav = ({ tab, setTab }) => {
+  const tabs = [{ id: "home", icon: "🏠", label: "Home" }, { id: "search", icon: "🔍", label: "Search" }];
   return (
     <div style={{
       position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
       width: "100%", maxWidth: 430, background: C.surface,
-      borderTop: `1px solid ${C.border}`, display: "flex",
-      padding: "8px 0 20px", zIndex: 100,
+      borderTop: `1px solid ${C.border}`, display: "flex", padding: "8px 0 20px", zIndex: 100,
     }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setTab(t.id)} style={{
-          flex: 1, background: "none", border: "none", cursor: "pointer",
-          display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-          padding: "6px 0",
-        }}>
-          <span style={{ fontSize: 22, filter: tab === t.id ? "none" : "grayscale(1) opacity(0.5)", transition: "filter 0.2s" }}>{t.icon}</span>
-          <span style={{ fontSize: 10, color: tab === t.id ? C.accentSoft : C.muted, fontWeight: tab === t.id ? 700 : 400 }}>{t.label}</span>
-          {tab === t.id && <div style={{ width: 4, height: 4, borderRadius: 2, background: C.accent }} />}
+        <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <span style={{ fontSize: 22 }}>{t.icon}</span>
+          <span style={{ fontSize: 10, color: tab === t.id ? C.accentSoft : C.muted }}>{t.label}</span>
         </button>
       ))}
     </div>
@@ -193,197 +136,60 @@ const BottomNav = ({ tab, setTab, isDev }) => {
 };
 
 // ── Screens ───────────────────────────────────────────────
-
-// Login Screen
-const LoginScreen = ({ onLogin, onDevMode }) => {
-  const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({ username: "", password: "", name: "" });
-  const [err, setErr] = useState("");
-
-  const handle = () => {
-    if (!form.username || !form.password) { setErr("Please fill all fields"); return; }
-    onLogin({ username: form.username, name: form.name || form.username, id: "u_new_" + Date.now() });
-  };
-
-  return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      {/* Logo */}
-      <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <div style={{ fontSize: 52, marginBottom: 8 }}>✦</div>
-        <div style={{ fontSize: 28, fontWeight: 900, background: `linear-gradient(135deg, ${C.accent}, ${C.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: -1 }}>
-          AURA
-        </div>
-        <div style={{ color: C.muted, fontSize: 13, marginTop: 4 }}>Connect. Share. Belong.</div>
-      </div>
-
-      {/* Toggle */}
-      <div style={{ display: "flex", background: C.card, borderRadius: 14, padding: 4, marginBottom: 24, width: "100%" }}>
-        {["login", "signup"].map(m => (
-          <button key={m} onClick={() => setMode(m)} style={{
-            flex: 1, padding: "10px", borderRadius: 11, border: "none", cursor: "pointer",
-            background: mode === m ? C.accent : "transparent",
-            color: mode === m ? "#fff" : C.muted, fontWeight: 700, fontSize: 14, transition: "all 0.2s"
-          }}>{m === "login" ? "Log In" : "Sign Up"}</button>
-        ))}
-      </div>
-
-      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
-        {mode === "signup" && <Input placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />}
-        <Input placeholder="Username" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} />
-        <Input placeholder="Password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
-        {err && <div style={{ color: C.pink, fontSize: 13, textAlign: "center" }}>{err}</div>}
-        <Btn onClick={handle}>{mode === "login" ? "Log In" : "Create Account"}</Btn>
-        <div style={{ textAlign: "center", marginTop: 8 }}>
-          <Btn variant="dev" onClick={onDevMode}>Developer Mode</Btn>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Dev Login Screen
-const DevLoginScreen = ({ onSuccess, onBack }) => {
-  const [step, setStep] = useState(1);
+const LoginScreen = ({ onLogin }) => {
   const [form, setForm] = useState({ username: "", password: "" });
-  const [captcha, setCaptcha] = useState("");
-  const [err, setErr] = useState("");
-
-  const handleCreds = () => {
-    if (form.username === DEV_CREDS.username && form.password === DEV_CREDS.password) {
-      setStep(2); setErr("");
-    } else setErr("Invalid credentials");
-  };
-
   return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 40, marginBottom: 8 }}>🛡️</div>
-        <div style={{ color: C.text, fontWeight: 900, fontSize: 22 }}>Developer Access</div>
-        <div style={{ color: C.muted, fontSize: 13, marginTop: 4 }}>Restricted area — authorized users only</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: 24, paddingTop: 100 }}>
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <div style={{ fontSize: 40 }}>✦</div>
+        <div style={{ fontSize: 28, fontWeight: 900, color: C.accentSoft }}>AURA</div>
       </div>
-
-      {step === 1 ? (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
-          <Input placeholder="Dev Username" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} />
-          <Input placeholder="Dev Password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
-          {err && <div style={{ color: C.pink, fontSize: 13, textAlign: "center" }}>{err}</div>}
-          <Btn onClick={handleCreds}>Continue</Btn>
-          <Btn variant="outline" onClick={onBack}>← Back</Btn>
-        </div>
-      ) : (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: "center" }}>
-            <div style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>CAPTCHA VERIFICATION</div>
-            <div style={{ fontFamily: "monospace", fontSize: 28, fontWeight: 900, color: C.accent, letterSpacing: 8, background: C.bg, borderRadius: 10, padding: "12px 0", textDecoration: "line-through", textDecorationColor: C.muted }}>
-              {CAPTCHA_ANSWER}
-            </div>
-            <div style={{ color: C.muted, fontSize: 11, marginTop: 8 }}>Enter the characters above</div>
-          </div>
-          <Input placeholder="Type captcha here" value={captcha} onChange={e => setCaptcha(e.target.value.toUpperCase())} />
-          {err && <div style={{ color: C.pink, fontSize: 13, textAlign: "center" }}>{err}</div>}
-          <Btn onClick={() => { if (captcha === CAPTCHA_ANSWER) onSuccess(); else setErr("Wrong captcha. Try again."); }}>
-            Verify & Enter
-          </Btn>
-        </div>
-      )}
+      <Input placeholder="Username" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} />
+      <Input placeholder="Password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+      <Btn onClick={() => onLogin({ name: form.username || "Guest", username: form.username || "guest" })}>Log In</Btn>
     </div>
   );
 };
 
-// Welcome Screen
-const WelcomeScreen = ({ user, onContinue }) => {
-  const [confetti, setConfetti] = useState(false);
-  const handleContinue = () => { setConfetti(true); setTimeout(onContinue, 1800); };
-  return (
-    <div style={{ minHeight: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-      <Confetti active={confetti} />
-      <div style={{ fontSize: 72, marginBottom: 24, animation: "bounce 1s infinite alternate" }}>
-        <style>{`@keyframes bounce{0%{transform:translateY(0)}100%{transform:translateY(-12px)}}`}</style>
-        ✦
-      </div>
-      <div style={{ color: C.muted, fontSize: 16, marginBottom: 8 }}>Welcome back,</div>
-      <div style={{ fontSize: 32, fontWeight: 900, background: `linear-gradient(135deg,${C.accent},${C.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12 }}>
-        {user?.name} 👋
-      </div>
-      <div style={{ color: C.muted, fontSize: 14, maxWidth: 260, lineHeight: 1.6, marginBottom: 48 }}>
-        Your world is waiting. Share moments, connect with friends, and let your story unfold.
-      </div>
-      <Btn onClick={handleContinue} style={{ padding: "16px 48px", fontSize: 16 }}>
-        {confetti ? "🎉 Launching..." : "Continue →"}
-      </Btn>
-    </div>
-  );
-};
-
-// Home Feed
-const HomeScreen = ({ currentUser, users, posts, isDev }) => {
+const HomeScreen = ({ currentUser }) => {
   const [liked, setLiked] = useState({});
-  const visiblePosts = posts.filter(p => {
-    const author = users.find(u => u.id === p.userId);
-    if (!author) return false;
-    if (isDev) return true;
-    if (author.locked && !author.friends?.includes(currentUser.id) && author.id !== currentUser.id) return false;
-    return true;
-  });
-
   return (
-    <div style={{ paddingBottom: 80 }}>
-      <div style={{ padding: "16px 16px 8px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 22, fontWeight: 900, background: `linear-gradient(135deg,${C.accent},${C.pink})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          {isDev ? "🌐 Global Feed (Dev)" : "AURA"}
-        </div>
-        <div style={{ fontSize: 22, color: C.muted, cursor: "pointer" }}>🔔</div>
-      </div>
-
-      {/* Stories */}
-      <div style={{ display: "flex", gap: 12, padding: "8px 16px", overflowX: "auto", marginBottom: 8 }}>
-        {[currentUser, ...users.slice(0, 5)].map((u, i) => (
-          <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
-            <div style={{ padding: 2, borderRadius: "50%", background: `linear-gradient(135deg,${C.accent},${C.pink})` }}>
-              <Avatar user={u} size={52} style={{ border: `2px solid ${C.bg}` }} />
-            </div>
-            <span style={{ fontSize: 10, color: C.muted, maxWidth: 56, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {i === 0 ? "Your story" : u.username}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ padding: "0 16px" }}>
-        {visiblePosts.map(p => {
-          const author = users.find(u => u.id === p.userId);
-          return <PostCard key={p.id} post={p} user={author} liked={!!liked[p.id]} onLike={() => setLiked(l => ({ ...l, [p.id]: !l[p.id] }))} />;
-        })}
-        {visiblePosts.length === 0 && (
-          <div style={{ textAlign: "center", padding: 60, color: C.muted }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🌊</div>
-            No posts yet. Follow people to see their moments!
-          </div>
-        )}
-      </div>
+    <div style={{ padding: "16px 16px 8px", paddingBottom: 100 }}>
+      <div style={{ fontSize: 22, fontWeight: 900, color: C.text, marginBottom: 20 }}>AURA</div>
+      {SEED_POSTS.map(p => {
+        const author = SEED_USERS.find(u => u.id === p.userId);
+        return <PostCard key={p.id} post={p} user={author} liked={!!liked[p.id]} onLike={() => setLiked(l => ({ ...l, [p.id]: !l[p.id] }))} />;
+      })}
     </div>
   );
 };
 
-// Search Screen
-const SearchScreen = ({ currentUser, users, onViewProfile }) => {
-  const [query, setQuery] = useState("");
-  const [friends, setFriends] = useState(new Set(["u2"]));
-  const results = users.filter(u => u.id !== currentUser.id && (u.name.toLowerCase().includes(query.toLowerCase()) || u.username.toLowerCase().includes(query.toLowerCase())));
+const SearchScreen = () => {
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 16 }}>Discover</div>
+      <Input placeholder="Search users..." value="" onChange={() => {}} />
+    </div>
+  );
+};
+
+// ── MAIN NAVIGATION APP COMPONENT ──────────────────────────────
+function MainApp() {
+  const [user, setUser] = useState(null);
+  const [tab, setTab] = useState("home");
+
+  if (!user) {
+    return <LoginScreen onLogin={setUser} />;
+  }
 
   return (
-    <div style={{ padding: 16, paddingBottom: 80 }}>
-      <div style={{ fontSize: 20, fontWeight: 900, color: C.text, marginBottom: 16 }}>Discover People</div>
-      <div style={{ position: "relative", marginBottom: 20 }}>
-        <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: C.muted }}>🔍</span>
-        <input
-          placeholder="Search users..." value={query} onChange={e => setQuery(e.target.value)}
-          style={{ width: "100%", padding: "13px 14px 13px 44px", borderRadius: 14, background: C.card, border: `1.5px solid ${C.border}`, color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box" }}
-        />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {results.map(u => (
-          <div key={u.id} style={{ background: C.card, borderRadius: 16, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12, border: `1px solid ${C.border}` }}>
-            <Avatar user={u} size={46} onClick={() => onViewProfile(u)} style={{ cursor: "pointer" }} />
-            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => onViewProfile(u)}>
-              <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>{u.name} {u.locked ? "🔒" : ""}</div>
+    <div>
+      {tab === "home" ? <HomeScreen currentUser={user} /> : <SearchScreen />}
+      <BottomNav tab={tab} setTab={setTab} />
+    </div>
+  );
+}
+
+// Render Setup
+const root = rumors = window.ReactDOM.createRoot(document.getElementById("root"));
+root.render(<MainApp />);
